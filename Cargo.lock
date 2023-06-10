@@ -1053,21 +1053,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rt"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "directories",
- "prettytable",
- "rand",
- "sqlx",
- "termimad",
- "textwrap",
- "tokio",
-]
-
-[[package]]
 name = "rustix"
 version = "0.37.19"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1107,6 +1092,21 @@ name = "rustversion"
 version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4f3208ce4d8448b3f3e7d168a73f5e0c43a61e32930de3bceeccedb388b6bf06"
+
+[[package]]
+name = "rusty_tasks"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "directories",
+ "prettytable",
+ "rand",
+ "sqlx",
+ "termimad",
+ "textwrap",
+ "tokio",
+]
 
 [[package]]
 name = "ryu"
