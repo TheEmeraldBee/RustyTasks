@@ -1,41 +1,5 @@
 {
   "db": "SQLite",
-  "122b1be0d13dee769a75f2661bcfcd0839c80e81f321c1db03053e17e0bf6d07": {
-    "describe": {
-      "columns": [
-        {
-          "name": "folder",
-          "ordinal": 0,
-          "type_info": "Text"
-        },
-        {
-          "name": "task",
-          "ordinal": 1,
-          "type_info": "Text"
-        },
-        {
-          "name": "id",
-          "ordinal": 2,
-          "type_info": "Int64"
-        },
-        {
-          "name": "status",
-          "ordinal": 3,
-          "type_info": "Text"
-        }
-      ],
-      "nullable": [
-        false,
-        false,
-        false,
-        false
-      ],
-      "parameters": {
-        "Right": 1
-      }
-    },
-    "query": "SELECT * FROM tasks WHERE folder=?1 ORDER BY folder ASC, task ASC"
-  },
   "30626a792b0ca347a932671f85b3c5c611901ff0fdf8267563f9f7815ba3884c": {
     "describe": {
       "columns": [],
@@ -153,6 +117,42 @@
       }
     },
     "query": "SELECT * FROM TASKS WHERE id = ?1"
+  },
+  "66926726f65a29c3d2f6f8188af4c54fc9731ac1808f7d574614f120bdb56c31": {
+    "describe": {
+      "columns": [
+        {
+          "name": "folder",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "task",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "id",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "status",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM tasks WHERE folder LIKE ?1 ORDER BY folder ASC, task ASC"
   },
   "7773236adbf22e24eff3ec4593aa516417500d9a779a1630f86f7099c6c875d4": {
     "describe": {
