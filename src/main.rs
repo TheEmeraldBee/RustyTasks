@@ -34,6 +34,10 @@ enum Args {
         /// (OPTIONAL) The folder that you want to list
         #[arg(short, long)]
         folder: Option<String>,
+
+        /// (OPTIONAL) How deep you want the recursive print of a folder to go (Default 2)
+        #[arg(short, default_value_t = 3)]
+        depth: u32,
     },
     /// Update a task, changing the task, its folder, or its status.
     Update {
@@ -208,7 +212,7 @@ status VARCHAR(255) NOT NULL
     match args {
         Args::Add { folder, task } => add_task(&pool, folder, task).await?,
         Args::Delete { id } => remove_task(&pool, id).await?,
-        Args::List { folder } => list_tasks(&pool, folder).await?,
+        Args::List { folder, depth } => list_tasks(&pool, folder, depth).await?,
         Args::Update {
             id,
             task,
@@ -365,7 +369,7 @@ async fn update_task(
     Ok(())
 }
 
-async fn list_tasks(pool: &SqlitePool, folder: Option<String>) -> anyhow::Result<()> {
+async fn list_tasks(pool: &SqlitePool, folder: Option<String>, depth: u32) -> anyhow::Result<()> {
     let mut tasks;
     if let Some(folder) = folder {
         verify_path(folder.clone())?;
@@ -403,10 +407,10 @@ async fn list_tasks(pool: &SqlitePool, folder: Option<String>) -> anyhow::Result
         result.add_task(task)?;
     }
 
-    let mut print_table = result.to_table(3);
+    let mut print_table = result.to_table(depth as i32);
     print_table.set_format(*consts::FORMAT_DEFAULT);
 
-    if print_table.len() <= 1 {
+    if print_table.is_empty() {
         print_table.add_row(row![cH2->"No Tasks Here!"]);
     }
 

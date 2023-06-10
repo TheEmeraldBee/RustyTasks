@@ -29,6 +29,8 @@ awesome things you can do with it! But we'll explain a couple of them here!
 ### List
 This one is simple, type ```rt list``` or ```rt list -f "folder/name/here"``` To see all of your tasks, or just the tasks under the specific folder!
 
+Optional: You can use the ```-d``` flag followed by a number to set the max depth that the system will recurse into folders (Default of 3)
+
 ### Add
 
 This one is how you add a new task!
