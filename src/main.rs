@@ -173,7 +173,7 @@ async fn add_task(pool: &SqlitePool, folder: String, task: String) -> anyhow::Re
         .fetch_one(pool)
         .await?;
 
-    let mut table = table!([task.id, task.folder, task.status, format_task(&task.task)]);
+    let mut table = table!([task.id, task.folder, &task.status, format_task(&task.task)]);
     table.set_titles(row![bFg=>"Task\n\nID", "Created!\n\nFolder", "\n\nStatus", "\n\nTask"]);
     table.set_format(*consts::FORMAT_BORDERS_ONLY);
     table.print_tty(true)?;
@@ -205,7 +205,7 @@ async fn remove_task(pool: &SqlitePool, id: u8) -> anyhow::Result<()> {
     confirmation = confirmation.to_uppercase().trim().to_string();
 
     if confirmation != "Y" && confirmation != "YES" {
-        ptable!([bcFg->"Deletion Cancled"]);
+        ptable!([bcFg->"Deletion Canceled"]);
         return Ok(());
     }
 
@@ -298,14 +298,14 @@ async fn list_tasks(pool: &SqlitePool, folder: Option<String>) -> anyhow::Result
         .await?;
 
         let mut table = Table::new();
-        table.set_format(*consts::FORMAT_NO_LINESEP_WITH_TITLE);
+        table.set_format(*consts::FORMAT_DEFAULT);
         table.set_titles(row![bFg->"Folder\nID", bFg->format!("{folder}\nTask"), bFg->"\nStatus"]);
 
         if tasks.is_empty() {
             table.add_row(row!["No Tasks Here!"]);
         }
         for task in tasks {
-            table.add_row(row![task.id, task.task, task.status]);
+            table.add_row(row![task.id, format_task(&task.task), task.status]);
         }
 
         table.print_tty(true)?;
