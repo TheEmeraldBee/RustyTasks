@@ -1,0 +1,203 @@
+{
+  "db": "SQLite",
+  "122b1be0d13dee769a75f2661bcfcd0839c80e81f321c1db03053e17e0bf6d07": {
+    "describe": {
+      "columns": [
+        {
+          "name": "folder",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "task",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "id",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "status",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM tasks WHERE folder=?1 ORDER BY folder ASC, task ASC"
+  },
+  "30626a792b0ca347a932671f85b3c5c611901ff0fdf8267563f9f7815ba3884c": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 4
+      }
+    },
+    "query": "INSERT INTO tasks VALUES (?1, ?2, ?3, ?4)"
+  },
+  "4b58f43d67a91c4bdd3c076fcd3f127f683a9a198531533e4d9e28ea33868ed0": {
+    "describe": {
+      "columns": [
+        {
+          "name": "folder",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "task",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "id",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "status",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM tasks WHERE id=?1"
+  },
+  "4ba6823f5a79170ad699d2036f51a95bf92d1f8233e8c8d58ecb1db63b9247dc": {
+    "describe": {
+      "columns": [
+        {
+          "name": "folder",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "task",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "id",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "status",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 0
+      }
+    },
+    "query": "SELECT * FROM tasks ORDER BY folder ASC, task ASC"
+  },
+  "53fca2e565a6ab035385efde1cc00b7d9f37c6999442eec6ecc3c0a7c3d3d855": {
+    "describe": {
+      "columns": [
+        {
+          "name": "folder",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "task",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "id",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "status",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM TASKS WHERE id = ?1"
+  },
+  "7773236adbf22e24eff3ec4593aa516417500d9a779a1630f86f7099c6c875d4": {
+    "describe": {
+      "columns": [],
+      "nullable": [],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "DELETE FROM tasks WHERE id = ?1"
+  },
+  "e72230977310b82514750f24d58a75745d2d1d9d7d4feff45fd72408e3321d36": {
+    "describe": {
+      "columns": [
+        {
+          "name": "folder",
+          "ordinal": 0,
+          "type_info": "Text"
+        },
+        {
+          "name": "task",
+          "ordinal": 1,
+          "type_info": "Text"
+        },
+        {
+          "name": "id",
+          "ordinal": 2,
+          "type_info": "Int64"
+        },
+        {
+          "name": "status",
+          "ordinal": 3,
+          "type_info": "Text"
+        }
+      ],
+      "nullable": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "parameters": {
+        "Right": 1
+      }
+    },
+    "query": "SELECT * FROM tasks WHERE id = ?1"
+  }
+}
