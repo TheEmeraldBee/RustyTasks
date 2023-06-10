@@ -8,7 +8,7 @@ description = "Your own terminal todo-list"
 homepage = "https://github.com/TheEmeraldBee/RustyTasks"
 repository = "https://github.com/TheEmeraldBee/RustyTasks"
 keywords = ["cli", "to-do", "terminal"]
-categories = ["command-line-utils"]
+categories = ["command-line-utilities"]
 
 [[bin]]
 name = "rt"
