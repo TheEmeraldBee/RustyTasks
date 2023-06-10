@@ -1,7 +1,8 @@
-use std::{collections::HashMap, env, fs};
+use std::{collections::BTreeMap, env, fs};
 
-use clap::{Parser, ValueEnum};
-use prettytable::Table;
+use anyhow::anyhow;
+use clap::Parser;
+use prettytable::{Row, Table};
 use rand::Rng;
 use sqlx::{FromRow, SqlitePool};
 
@@ -45,34 +46,102 @@ enum Args {
         /// (OPTIONAL) the new folder for the task
         #[arg(short, long)]
         folder: Option<String>,
-        /// (OPTIONAL) the new status for the task,
-        #[arg(value_enum, short, long)]
-        status: Option<Status>,
-        /// (OPTIONAL) sets a custom status instead
+        /// (OPTIONAL) sets the status of the task
         #[arg(short, long)]
-        custom_status: Option<String>,
+        status: Option<String>,
     },
 }
 
-#[derive(Clone, Debug, Default, ValueEnum, PartialEq)]
-pub enum Status {
-    #[default]
-    Incomplete,
-    InProgress,
-    Complete,
+#[derive(Debug, Default)]
+pub struct Folder {
+    pub tasks: Vec<Task>,
+    pub subfolders: BTreeMap<String, Folder>,
 }
 
-impl Status {
-    pub fn to_string(&self) -> &'static str {
-        match self {
-            Status::Incomplete => "Incomplete",
-            Status::InProgress => "In Progress",
-            Status::Complete => "Complete",
+pub fn verify_path(path: String) -> anyhow::Result<()> {
+    if path.trim() == "" {
+        return Ok(());
+    }
+
+    let path: Vec<_> = path.split('/').collect();
+
+    for folder in &path {
+        if folder.trim() == "" {
+            return Err(anyhow!("Empty Folder Name Found\n\nHelp: Ensure there are no trailing slashes or double slashes!"));
         }
+    }
+
+    Ok(())
+}
+
+impl Folder {
+    fn add_task(&mut self, mut task: Task) -> anyhow::Result<()> {
+        if task.folder.trim() == "" {
+            // This is the correct path.
+            self.tasks.push(task);
+            return Ok(());
+        }
+
+        let mut path: Vec<_> = task.folder.split('/').collect();
+
+        let cur = path.first().expect("Unreachable").to_string();
+        path.remove(0);
+
+        if cur.trim() == "" {
+            return Err(anyhow!("Empty Folder Name Found\n\nHelp: Ensure there are no trailing slashes or double slashes!"));
+        }
+
+        // Get the remaining path
+        let mut remaining_path = "".to_string();
+        for remaining in &path {
+            remaining_path.push_str(&format!("{remaining}/"));
+        }
+
+        if !remaining_path.is_empty() {
+            remaining_path.remove(remaining_path.len() - 1);
+        }
+
+        task.folder = remaining_path.to_string();
+
+        // Ensure the subfolder exists
+        if !self.subfolders.contains_key(&cur) {
+            self.subfolders.insert(cur.to_string(), Folder::default());
+        }
+
+        // Send this path to that subfolder
+        self.subfolders.get_mut(&cur).unwrap().add_task(task)?;
+
+        Ok(())
+    }
+    fn to_table(&self, max_depth: i32) -> Table {
+        let mut result = Table::new();
+        result.set_format(*consts::FORMAT_NO_BORDER);
+        result.set_titles(row![bFg=>"Type", "Contents"]);
+
+        // Show the folders first.
+        if max_depth > 1 {
+            for folder in &self.subfolders {
+                result.add_row(row![
+                    &format!("Folder\n{}", folder.0),
+                    folder.1.to_table(max_depth - 1)
+                ]);
+            }
+        } else {
+            for _folder in &self.subfolders {
+                result.add_row(row!["Folder", "------"]);
+            }
+        }
+
+        // Now display this folder's tasks
+        for task in &self.tasks {
+            result.add_row(task.to_row());
+        }
+
+        result
     }
 }
 
-#[derive(FromRow, Debug)]
+#[derive(FromRow, Debug, Clone)]
 pub struct Task {
     pub folder: String,
     pub task: String,
@@ -80,8 +149,21 @@ pub struct Task {
     pub status: String,
 }
 
+impl Task {
+    pub fn to_row(&self) -> Row {
+        let mut task_display = table![[self.id, format_task(&self.task), self.status]];
+        task_display.set_titles(row!["ID", "Task", "Status"]);
+        task_display.set_format(*consts::FORMAT_NO_BORDER_LINE_SEPARATOR);
+        row!["Task", task_display]
+    }
+}
+
 pub fn format_task(task: &str) -> String {
-    textwrap::fill(task, 25)
+    let mut result = task.to_string();
+    while result.len() < 25 {
+        result.push(' ');
+    }
+    textwrap::fill(&result, 25)
 }
 
 #[tokio::main]
@@ -132,14 +214,14 @@ status VARCHAR(255) NOT NULL
             task,
             folder,
             status,
-            custom_status,
-        } => update_task(&pool, id, task, folder, status, custom_status).await?,
+        } => update_task(&pool, id, task, folder, status).await?,
     }
 
     Ok(())
 }
 
 async fn add_task(pool: &SqlitePool, folder: String, task: String) -> anyhow::Result<()> {
+    verify_path(folder.clone())?;
     let mut conn = pool.acquire().await?;
     let mut rng = rand::thread_rng();
 
@@ -234,8 +316,7 @@ async fn update_task(
     id: u8,
     task: Option<String>,
     folder: Option<String>,
-    status: Option<Status>,
-    custom_status: Option<String>,
+    status: Option<String>,
 ) -> anyhow::Result<()> {
     let mut conn = pool.acquire().await?;
 
@@ -248,14 +329,12 @@ async fn update_task(
         has_task = true;
     }
     if let Some(folder) = folder {
+        verify_path(folder.clone())?;
         query.push_str(&format!("folder=\"{}\", ", folder));
         has_task = true
     }
-    if let Some(custom_status) = custom_status {
-        query.push_str(&format!("status=\"{}\",  ", custom_status));
-        has_task = true;
-    } else if let Some(status) = status {
-        query.push_str(&format!("status=\"{}\",  ", status.to_string()));
+    if let Some(status) = status {
+        query.push_str(&format!("status=\"{}\",  ", status));
         has_task = true;
     }
 
@@ -287,63 +366,51 @@ async fn update_task(
 }
 
 async fn list_tasks(pool: &SqlitePool, folder: Option<String>) -> anyhow::Result<()> {
+    let mut tasks;
     if let Some(folder) = folder {
+        verify_path(folder.clone())?;
         // List the tasks in the folder specified, if empty, tell user it is empty
-        let tasks = sqlx::query_as!(
+        let mut query_folder = folder.clone();
+        query_folder.push('%');
+        tasks = sqlx::query_as!(
             Task,
-            "SELECT * FROM tasks WHERE folder=?1 ORDER BY folder ASC, task ASC",
-            folder
+            "SELECT * FROM tasks WHERE folder LIKE ?1 ORDER BY folder ASC, task ASC",
+            query_folder
         )
         .fetch_all(pool)
         .await?;
 
-        let mut table = Table::new();
-        table.set_format(*consts::FORMAT_DEFAULT);
-        table.set_titles(row![bFg->"Folder\nID", bFg->format!("{folder}\nTask"), bFg->"\nStatus"]);
+        for task in &mut tasks {
+            let mut replace_string = folder.clone();
+            replace_string.push('/');
+            let result = task
+                .folder
+                .to_lowercase()
+                .replacen(&replace_string.to_lowercase(), "", 1);
 
-        if tasks.is_empty() {
-            table.add_row(row!["No Tasks Here!"]);
-        }
-        for task in tasks {
-            table.add_row(row![task.id, format_task(&task.task), task.status]);
-        }
-
-        table.print_tty(true)?;
-    } else {
-        let mut table = Table::new();
-        table.set_format(*consts::FORMAT_DEFAULT);
-
-        table.set_titles(row![bFg->"Folder", bFg->"Tasks"]);
-
-        let mut task_tables: HashMap<String, Table> = HashMap::new();
-
-        // List All Tasks Here In a Heirarchy view
-        let tasks = sqlx::query_as!(Task, "SELECT * FROM tasks ORDER BY folder ASC, task ASC")
-            .fetch_all(pool)
-            .await?;
-
-        if tasks.is_empty() {
-            table.add_row(row!["No Tasks Here!"]);
-        }
-
-        for task in tasks {
-            if let Some(task_table) = task_tables.get_mut(&task.folder) {
-                task_table.add_row(row![task.id, format_task(&task.task), task.status]);
-            } else {
-                let mut task_table = Table::new();
-                task_table.set_format(*consts::FORMAT_NO_BORDER);
-                task_table.set_titles(row![bFb->"ID", bFb->"Task", bFb->"Status"]);
-                task_table.add_row(row![task.id, format_task(&task.task), task.status]);
-                task_tables.insert(task.folder, task_table);
+            while task.folder.len() > result.len() {
+                task.folder.remove(0);
             }
         }
-
-        for task_table in task_tables.iter() {
-            table.add_row(row![task_table.0, task_table.1]);
-        }
-
-        table.print_tty(true)?;
+    } else {
+        tasks = sqlx::query_as!(Task, "SELECT * FROM tasks ORDER BY folder ASC, task ASC")
+            .fetch_all(pool)
+            .await?;
     }
+
+    let mut result = Folder::default();
+    for task in tasks {
+        result.add_task(task)?;
+    }
+
+    let mut print_table = result.to_table(3);
+    print_table.set_format(*consts::FORMAT_DEFAULT);
+
+    if print_table.len() <= 1 {
+        print_table.add_row(row![cH2->"No Tasks Here!"]);
+    }
+
+    print_table.print_tty(true)?;
 
     Ok(())
 }
