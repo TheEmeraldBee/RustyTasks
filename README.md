@@ -20,7 +20,7 @@ Rusty Tasks uses a pretty table style renderer that makes your tasks look like t
 ## Installation
 First, make sure that you have sqlite installed, if you don't, install it with your favorite package manager.
 
-Then, installing RustyTasks is as simple as having cargo and running ```cargo install rt```
+Then, installing RustyTasks is as simple as having cargo and running ```cargo install rusty_tasks```
 
 ## Usage
 To start, run Rusty Tasks by typing ```rt``` in your terminal! It will show you a list of all of the
